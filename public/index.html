@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8x8 Video Matrix Controller</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-connect {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-connect:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-disconnect {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-disconnect:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .matrix-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .matrix-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .matrix-header h2 {
+            color: #333;
+            font-size: 18px;
+        }
+
+        .selection-info {
+            font-size: 14px;
+            color: #666;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: auto repeat(8, 1fr);
+            gap: 8px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .matrix-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .matrix-cell {
+            aspect-ratio: 1;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #999;
+            position: relative;
+        }
+
+        .matrix-cell:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: scale(1.05);
+        }
+
+        .matrix-cell.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .matrix-cell.active::after {
+            content: '✓';
+            position: absolute;
+            font-size: 20px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .quick-btn {
+            padding: 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .log {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: #a0aec0;
+            margin-right: 10px;
+        }
+
+        .log-success {
+            color: #68d391;
+        }
+
+        .log-error {
+            color: #fc8181;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 8x8 Video Matrix Controller</h1>
+            <div class="status" id="status">
+                <span class="status-indicator"></span>
+                <span id="statusText">Checking connection...</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-connect" onclick="connect()">Connect</button>
+            <button class="btn btn-disconnect" onclick="disconnect()">Disconnect</button>
+            <button class="btn btn-connect" onclick="queryStatus()">Refresh Status</button>
+        </div>
+
+        <div class="matrix-container">
+            <div class="matrix-header">
+                <h2>Matrix Switcher</h2>
+                <div class="selection-info" id="selectionInfo">
+                    Click any cell to route input to output
+                </div>
+            </div>
+
+            <div class="matrix-grid" id="matrixGrid">
+                <!-- Grid will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="allOff()">Turn All Outputs OFF</button>
+            <button class="quick-btn" onclick="diagonal()">Diagonal Routing (1→1, 2→2, etc.)</button>
+            <button class="quick-btn" onclick="allToOne()">Route All Outputs to Input 1</button>
+        </div>
+
+        <div class="log" id="log">
+            <div class="log-entry">
+                <span class="log-time">Ready</span>
+                <span>System initialized</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let currentRouting = {}; // Track current routing state
+
+        // Initialize matrix grid
+        function initMatrix() {
+            const grid = document.getElementById('matrixGrid');
+            grid.innerHTML = '';
+
+            // Top-left corner (empty)
+            grid.appendChild(document.createElement('div'));
+
+            // Output labels (top row)
+            for (let out = 1; out <= 8; out++) {
+                const label = document.createElement('div');
+                label.className = 'matrix-label';
+                label.textContent = `OUT ${out}`;
+                grid.appendChild(label);
+            }
+
+            // Input rows
+            for (let inp = 1; inp <= 8; inp++) {
+                // Input label (left column)
+                const label = document.createElement('div');
+                label.className = 'matrix-label';
+                label.textContent = `IN ${inp}`;
+                grid.appendChild(label);
+
+                // Output cells
+                for (let out = 1; out <= 8; out++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'matrix-cell';
+                    cell.dataset.input = inp;
+                    cell.dataset.output = out;
+                    cell.onclick = () => switchRoute(inp, out);
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        // Switch input to output
+        async function switchRoute(input, output) {
+            // Immediately update UI for instant feedback
+            currentRouting[output] = input;
+            updateMatrixDisplay();
+            
+            try {
+                const response = await fetch(`${API_URL}/switch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input, output })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    updateSelectionInfo(input, output);
+                    addLog(`Routed Input ${input} → Output ${output}`, 'success');
+                } else {
+                    // Revert on error
+                    delete currentRouting[output];
+                    updateMatrixDisplay();
+                    addLog(`Failed to switch: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                // Revert on error
+                delete currentRouting[output];
+                updateMatrixDisplay();
+                addLog(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Update matrix display
+        function updateMatrixDisplay() {
+            document.querySelectorAll('.matrix-cell').forEach(cell => {
+                const input = parseInt(cell.dataset.input);
+                const output = parseInt(cell.dataset.output);
+                
+                if (currentRouting[output] === input) {
+                    cell.classList.add('active');
+                } else {
+                    cell.classList.remove('active');
+                }
+            });
+        }
+
+        // Update selection info
+        function updateSelectionInfo(input, output) {
+            const info = document.getElementById('selectionInfo');
+            info.textContent = `Input ${input} → Output ${output}`;
+        }
+
+        // Query current routing status from matrix
+        async function queryStatus() {
+            try {
+                addLog('Querying current routing status...', 'info');
+                const response = await fetch(`${API_URL}/query-status`);
+                const data = await response.json();
+
+                if (data.success) {
+                    currentRouting = data.routing;
+                    updateMatrixDisplay();
+                    
+                    // Count active routes
+                    const activeRoutes = Object.keys(currentRouting).filter(out => currentRouting[out] > 0).length;
+                    addLog(`Routing status loaded: ${activeRoutes} active route(s)`, 'success');
+                    
+                    // Log the routing details
+                    Object.keys(currentRouting).forEach(output => {
+                        const input = currentRouting[output];
+                        if (input > 0) {
+                            console.log(`Output ${output} <- Input ${input}`);
+                        } else {
+                            console.log(`Output ${output} is OFF`);
+                        }
+                    });
+                } else {
+                    addLog(`Failed to query status: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Status query error: ${error.message}`, 'error');
+            }
+        }
+
+        // Check connection status
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_URL}/status`);
+                const data = await response.json();
+                updateStatus(data.connected);
+            } catch (error) {
+                updateStatus(false);
+            }
+        }
+
+        // Update status display
+        function updateStatus(connected) {
+            const statusEl = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            
+            if (connected) {
+                statusEl.className = 'status connected';
+                statusText.textContent = 'Connected';
+            } else {
+                statusEl.className = 'status disconnected';
+                statusText.textContent = 'Disconnected';
+            }
+        }
+
+        // Connect to matrix
+        async function connect() {
+            try {
+                const response = await fetch(`${API_URL}/connect`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog('Connected to video matrix', 'success');
+                    updateStatus(true);
+                    
+                    // Query current status after connecting
+                    setTimeout(() => queryStatus(), 500);
+                } else {
+                    addLog('Failed to connect', 'error');
+                }
+            } catch (error) {
+                addLog(`Connection error: ${error.message}`, 'error');
+            }
+        }
+
+        // Disconnect from matrix
+        async function disconnect() {
+            try {
+                const response = await fetch(`${API_URL}/disconnect`, { method: 'POST' });
+                const data = await response.json();
+                addLog('Disconnected from video matrix', 'success');
+                updateStatus(false);
+            } catch (error) {
+                addLog(`Disconnect error: ${error.message}`, 'error');
+            }
+        }
+
+        // Quick action: Turn all outputs off
+        async function allOff() {
+            addLog('Turning all outputs OFF...', 'info');
+            const promises = [];
+            for (let out = 1; out <= 8; out++) {
+                promises.push(switchRoute(0, out));
+            }
+            await Promise.all(promises);
+            addLog('All outputs turned OFF', 'success');
+        }
+
+        // Quick action: Diagonal routing
+        async function diagonal() {
+            addLog('Applying diagonal routing...', 'info');
+            const promises = [];
+            for (let i = 1; i <= 8; i++) {
+                promises.push(switchRoute(i, i));
+            }
+            await Promise.all(promises);
+            addLog('Diagonal routing applied (1→1, 2→2, etc.)', 'success');
+        }
+
+        // Quick action: All to input 1
+        async function allToOne() {
+            addLog('Routing all outputs to Input 1...', 'info');
+            const promises = [];
+            for (let out = 1; out <= 8; out++) {
+                promises.push(switchRoute(1, out));
+            }
+            await Promise.all(promises);
+            addLog('All outputs routed to Input 1', 'success');
+        }
+
+        // Add log entry
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const time = new Date().toLocaleTimeString();
+            const typeClass = type === 'success' ? 'log-success' : type === 'error' ? 'log-error' : '';
+            
+            entry.innerHTML = `
+                <span class="log-time">[${time}]</span>
+                <span class="${typeClass}">${message}</span>
+            `;
+            
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+
+            // Keep only last 50 entries
+            while (log.children.length > 50) {
+                log.removeChild(log.firstChild);
+            }
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            initMatrix();
+            checkStatus();
+            
+            // Try to query status after a short delay if already connected
+            setTimeout(async () => {
+                try {
+                    const response = await fetch(`${API_URL}/status`);
+                    const data = await response.json();
+                    if (data.connected) {
+                        queryStatus();
+                    }
+                } catch (err) {
+                    // Connection not available yet
+                }
+            }, 1000);
+            
+            // Check status every 5 seconds
+            setInterval(checkStatus, 5000);
+        };
+    </script>
+</body>
+</html>
