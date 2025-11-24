@@ -13,7 +13,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
 # Start the Node.js server in background
-node server-secure.js &
+node server.js &
 SERVER_PID=$!
 
 # Wait for server to start
