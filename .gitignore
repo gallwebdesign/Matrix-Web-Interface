@@ -225,6 +225,7 @@ deploy-staging.sh
 # Generated documentation
 docs/build/
 api-docs/
+.md
 
 # ==============================================================================
 # EXAMPLES TO KEEP IN REPO
