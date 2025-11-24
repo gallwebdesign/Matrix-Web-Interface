@@ -3,9 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>8x8 Video Matrix Controller</title>
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <title>Matrix Control Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-bg: #0a0f1c;
+            --secondary-bg: #1a2332;
+            --tertiary-bg: #2d3748;
+            --accent-blue: #00d4ff;
+            --accent-cyan: #00ffaa;
+            --accent-orange: #ff6b35;
+            --accent-red: #ff4757;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.3);
+            --shadow-deep: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,60 +29,118 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 170, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, var(--primary-bg) 0%, #0f1419 100%);
         }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 1200px;
-            width: 100%;
+        .control-center {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            grid-template-rows: 80px 1fr 60px;
+            height: 100vh;
+            width: 100vw;
+            gap: 1px;
+            background: var(--border-color);
         }
 
+        /* Header */
         .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .status {
-            display: inline-flex;
+            grid-column: 1 / -1;
+            background: var(--secondary-bg);
+            display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
+            justify-content: space-between;
+            padding: 0 32px;
+            border-bottom: 2px solid var(--accent-blue);
+            position: relative;
+            overflow: hidden;
         }
 
-        .status.connected {
-            background: #d4edda;
-            color: #155724;
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(0, 212, 255, 0.1) 50%, 
+                transparent 100%);
+            animation: scanline 3s linear infinite;
         }
 
-        .status.disconnected {
-            background: #f8d7da;
-            color: #721c24;
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 10;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 24px;
+            color: var(--primary-bg);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .logo-text {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--text-primary);
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            z-index: 10;
         }
 
         .status-indicator {
-            width: 10px;
-            height: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(45, 55, 72, 0.8);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            background: currentColor;
-            animation: pulse 2s infinite;
+            background: var(--accent-cyan);
+            box-shadow: 0 0 12px var(--accent-cyan);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-dot.disconnected {
+            background: var(--accent-red);
+            box-shadow: 0 0 12px var(--accent-red);
         }
 
         @keyframes pulse {
@@ -74,227 +148,529 @@
             50% { opacity: 0.5; }
         }
 
-        .controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
+        .status-text {
             font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+            font-weight: 500;
+            color: var(--text-secondary);
         }
 
-        .btn-connect {
-            background: #28a745;
-            color: white;
+        /* Left Panel - Controls */
+        .left-panel {
+            background: var(--secondary-bg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .btn-connect:hover {
-            background: #218838;
-            transform: translateY(-2px);
-        }
-
-        .btn-disconnect {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-disconnect:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-        }
-
-        .matrix-container {
-            background: #f8f9fa;
+        .control-section {
+            background: rgba(45, 55, 72, 0.5);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-section h3 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent-blue);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-btn {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, var(--tertiary-bg), #1e293b);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, var(--accent-blue), #0ea5e9);
+            border-color: var(--accent-blue);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-2px);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn.primary {
+            background: linear-gradient(135deg, var(--accent-blue), #0ea5e9);
+            border-color: var(--accent-blue);
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.3);
+        }
+
+        .control-btn.secondary {
+            background: linear-gradient(135deg, var(--accent-cyan), #10b981);
+            border-color: var(--accent-cyan);
+            box-shadow: 0 4px 16px rgba(0, 255, 170, 0.3);
+        }
+
+        .control-btn.danger {
+            background: linear-gradient(135deg, var(--accent-red), #dc2626);
+            border-color: var(--accent-red);
+            box-shadow: 0 4px 16px rgba(255, 71, 87, 0.3);
+        }
+
+        /* Main Matrix Area */
+        .matrix-container {
+            background: var(--secondary-bg);
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
 
         .matrix-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 32px;
         }
 
-        .matrix-header h2 {
-            color: #333;
-            font-size: 18px;
+        .matrix-title {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 28px;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .selection-info {
-            font-size: 14px;
-            color: #666;
-            background: white;
+        .matrix-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .info-chip {
             padding: 8px 16px;
-            border-radius: 8px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--accent-blue);
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--accent-blue);
+            font-weight: 500;
+        }
+
+        .matrix-grid-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .matrix-grid {
             display: grid;
-            grid-template-columns: auto repeat(8, 1fr);
+            grid-template-columns: 80px repeat(8, 80px);
+            grid-template-rows: 60px repeat(8, 60px);
             gap: 8px;
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 20px;
+            background: rgba(45, 55, 72, 0.3);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
         }
 
         .matrix-label {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
-            color: #667eea;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
             font-size: 14px;
+            color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--accent-blue);
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .matrix-cell {
-            aspect-ratio: 1;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            color: #999;
+            background: var(--tertiary-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
             position: relative;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 12px;
+            color: var(--text-muted);
+            overflow: hidden;
+        }
+
+        .matrix-cell::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(0, 212, 255, 0.3), 
+                transparent);
+            transition: left 0.5s ease;
         }
 
         .matrix-cell:hover {
-            border-color: #667eea;
-            background: #f0f4ff;
+            border-color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.1);
             transform: scale(1.05);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .matrix-cell:hover::before {
+            left: 100%;
         }
 
         .matrix-cell.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: #667eea;
-            color: white;
-            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-cyan), #10b981);
+            border-color: var(--accent-cyan);
+            color: var(--primary-bg);
+            font-weight: 700;
+            box-shadow: 0 0 20px rgba(0, 255, 170, 0.5);
+            animation: activeGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes activeGlow {
+            0% { box-shadow: 0 0 20px rgba(0, 255, 170, 0.5); }
+            100% { box-shadow: 0 0 30px rgba(0, 255, 170, 0.8); }
         }
 
         .matrix-cell.active::after {
-            content: '✓';
+            content: '●';
             position: absolute;
-            font-size: 20px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: var(--primary-bg);
         }
 
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
+        /* Right Panel - Status */
+        .right-panel {
+            background: var(--secondary-bg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
-        .quick-btn {
-            padding: 12px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
+        .status-section {
+            background: rgba(45, 55, 72, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-section h3 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--accent-orange);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .route-display {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .route-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            border-left: 4px solid var(--accent-cyan);
+            font-size: 14px;
+        }
+
+        .route-from {
+            color: var(--accent-blue);
+            font-weight: 700;
+        }
+
+        .route-to {
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .log-container {
+            background: var(--primary-bg);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .quick-btn:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .log {
-            background: #2d3748;
-            color: #e2e8f0;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            max-height: 200px;
+            height: 200px;
             overflow-y: auto;
-            margin-top: 20px;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
         }
 
         .log-entry {
+            display: flex;
+            gap: 12px;
             padding: 4px 0;
-            border-bottom: 1px solid #4a5568;
-        }
-
-        .log-entry:last-child {
-            border-bottom: none;
+            border-bottom: 1px solid rgba(100, 116, 139, 0.2);
         }
 
         .log-time {
-            color: #a0aec0;
-            margin-right: 10px;
+            color: var(--text-muted);
+            min-width: 70px;
+        }
+
+        .log-message {
+            color: var(--text-secondary);
         }
 
         .log-success {
-            color: #68d391;
+            color: var(--accent-cyan);
         }
 
         .log-error {
-            color: #fc8181;
+            color: var(--accent-red);
+        }
+
+        .log-info {
+            color: var(--accent-blue);
+        }
+
+        /* Footer */
+        .footer {
+            grid-column: 1 / -1;
+            background: var(--primary-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 32px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-info {
+            display: flex;
+            gap: 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .footer-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .footer-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .quick-btn {
+            padding: 10px 12px;
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .quick-btn:hover {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: var(--primary-bg);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .control-section, .status-section {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .control-section:nth-child(2) { animation-delay: 0.1s; }
+        .control-section:nth-child(3) { animation-delay: 0.2s; }
+        .status-section:nth-child(2) { animation-delay: 0.3s; }
+        .status-section:nth-child(3) { animation-delay: 0.4s; }
+
+        /* Scrollbar Styling */
+        .log-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .log-container::-webkit-scrollbar-track {
+            background: var(--primary-bg);
+        }
+
+        .log-container::-webkit-scrollbar-thumb {
+            background: var(--accent-blue);
+            border-radius: 3px;
+        }
+
+        .log-container::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-cyan);
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="control-center">
+        <!-- Header -->
         <div class="header">
-            <h1>🎬 8x8 Video Matrix Controller</h1>
-            <div class="status" id="status">
-                <span class="status-indicator"></span>
-                <span id="statusText">Checking connection...</span>
+            <div class="logo">
+                <div class="logo-icon">MX</div>
+                <div class="logo-text">MATRIX CONTROL CENTER</div>
+            </div>
+            <div class="system-status">
+                <div class="status-indicator">
+                    <div class="status-dot" id="connectionDot"></div>
+                    <div class="status-text" id="connectionStatus">Checking...</div>
+                </div>
+                <div class="status-indicator">
+                    <div class="status-text" id="matrixInfo">Matrix: ---.---.---.---</div>
+                </div>
             </div>
         </div>
 
-        <div class="controls">
-            <button class="btn btn-connect" onclick="connect()">Connect</button>
-            <button class="btn btn-disconnect" onclick="disconnect()">Disconnect</button>
-            <button class="btn btn-connect" onclick="queryStatus()">Refresh Status</button>
-        </div>
-
-        <div class="matrix-container">
-            <div class="matrix-header">
-                <h2>Matrix Switcher</h2>
-                <div class="selection-info" id="selectionInfo">
-                    Click any cell to route input to output
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="control-section">
+                <h3>Connection</h3>
+                <div class="control-buttons">
+                    <button class="control-btn primary" onclick="connect()">CONNECT</button>
+                    <button class="control-btn danger" onclick="disconnect()">DISCONNECT</button>
+                    <button class="control-btn secondary" onclick="queryStatus()">REFRESH STATUS</button>
                 </div>
             </div>
 
-            <div class="matrix-grid" id="matrixGrid">
-                <!-- Grid will be generated by JavaScript -->
+            <div class="control-section">
+                <h3>Quick Routes</h3>
+                <div class="quick-actions">
+                    <button class="quick-btn" onclick="diagonal()">DIAGONAL</button>
+                    <button class="quick-btn" onclick="allToOne()">ALL→IN1</button>
+                    <button class="quick-btn" onclick="allOff()">ALL OFF</button>
+                    <button class="quick-btn" onclick="clearAll()">CLEAR</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Presets</h3>
+                <div class="control-buttons">
+                    <button class="control-btn" onclick="savePreset()">SAVE PRESET</button>
+                    <button class="control-btn" onclick="loadPreset()">LOAD PRESET</button>
+                </div>
             </div>
         </div>
 
-        <div class="quick-actions">
-            <button class="quick-btn" onclick="allOff()">Turn All Outputs OFF</button>
-            <button class="quick-btn" onclick="diagonal()">Diagonal Routing (1→1, 2→2, etc.)</button>
-            <button class="quick-btn" onclick="allToOne()">Route All Outputs to Input 1</button>
+        <!-- Main Matrix -->
+        <div class="matrix-container">
+            <div class="matrix-header">
+                <div class="matrix-title">8×8 SWITCHING MATRIX</div>
+                <div class="matrix-info">
+                    <div class="info-chip" id="activeRoutes">0 ROUTES ACTIVE</div>
+                    <div class="info-chip" id="lastAction">READY</div>
+                </div>
+            </div>
+            <div class="matrix-grid-container">
+                <div class="matrix-grid" id="matrixGrid">
+                    <!-- Grid will be generated by JavaScript -->
+                </div>
+            </div>
         </div>
 
-        <div class="log" id="log">
-            <div class="log-entry">
-                <span class="log-time">Ready</span>
-                <span>System initialized</span>
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="status-section">
+                <h3>Active Routes</h3>
+                <div class="route-display" id="routeDisplay">
+                    <div class="route-item">
+                        <span class="route-from">No active routes</span>
+                        <span class="route-to">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-section">
+                <h3>System Log</h3>
+                <div class="log-container" id="logContainer">
+                    <div class="log-entry">
+                        <span class="log-time">[READY]</span>
+                        <span class="log-message log-info">System initialized</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-info">
+                <span>Matrix Controller v2.0</span>
+                <span>Resolution: 1600×900</span>
+                <span id="systemTime">--:--:--</span>
+            </div>
+            <div class="footer-actions">
+                <button class="footer-btn" onclick="exportConfig()">EXPORT CONFIG</button>
+                <button class="footer-btn" onclick="showHelp()">HELP</button>
             </div>
         </div>
     </div>
 
     <script>
         const API_URL = 'http://localhost:3000/api';
-        let currentRouting = {}; // Track current routing state
+        let currentRouting = {};
+        let isConnected = false;
 
         // Initialize matrix grid
         function initMatrix() {
@@ -334,9 +710,11 @@
 
         // Switch input to output
         async function switchRoute(input, output) {
-            // Immediately update UI for instant feedback
+            // Immediate UI feedback
             currentRouting[output] = input;
             updateMatrixDisplay();
+            updateActiveRoutes();
+            updateLastAction(`IN${input} → OUT${output}`);
             
             try {
                 const response = await fetch(`${API_URL}/switch`, {
@@ -348,18 +726,19 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    updateSelectionInfo(input, output);
                     addLog(`Routed Input ${input} → Output ${output}`, 'success');
                 } else {
                     // Revert on error
                     delete currentRouting[output];
                     updateMatrixDisplay();
+                    updateActiveRoutes();
                     addLog(`Failed to switch: ${data.error}`, 'error');
                 }
             } catch (error) {
                 // Revert on error
                 delete currentRouting[output];
                 updateMatrixDisplay();
+                updateActiveRoutes();
                 addLog(`Error: ${error.message}`, 'error');
             }
         }
@@ -378,80 +757,47 @@
             });
         }
 
-        // Update selection info
-        function updateSelectionInfo(input, output) {
-            const info = document.getElementById('selectionInfo');
-            info.textContent = `Input ${input} → Output ${output}`;
-        }
-
-        // Query current routing status from matrix
-        async function queryStatus() {
-            try {
-                addLog('Querying current routing status...', 'info');
-                const response = await fetch(`${API_URL}/query-status`);
-                const data = await response.json();
-
-                if (data.success) {
-                    currentRouting = data.routing;
-                    updateMatrixDisplay();
-                    
-                    // Count active routes
-                    const activeRoutes = Object.keys(currentRouting).filter(out => currentRouting[out] > 0).length;
-                    addLog(`Routing status loaded: ${activeRoutes} active route(s)`, 'success');
-                    
-                    // Log the routing details
-                    Object.keys(currentRouting).forEach(output => {
-                        const input = currentRouting[output];
-                        if (input > 0) {
-                            console.log(`Output ${output} <- Input ${input}`);
-                        } else {
-                            console.log(`Output ${output} is OFF`);
-                        }
-                    });
-                } else {
-                    addLog(`Failed to query status: ${data.error}`, 'error');
-                }
-            } catch (error) {
-                addLog(`Status query error: ${error.message}`, 'error');
-            }
-        }
-
-        // Check connection status
-        async function checkStatus() {
-            try {
-                const response = await fetch(`${API_URL}/status`);
-                const data = await response.json();
-                updateStatus(data.connected);
-            } catch (error) {
-                updateStatus(false);
-            }
-        }
-
-        // Update status display
-        function updateStatus(connected) {
-            const statusEl = document.getElementById('status');
-            const statusText = document.getElementById('statusText');
+        // Update active routes display
+        function updateActiveRoutes() {
+            const routeDisplay = document.getElementById('routeDisplay');
+            const activeRoutes = Object.keys(currentRouting).filter(out => currentRouting[out] > 0);
             
-            if (connected) {
-                statusEl.className = 'status connected';
-                statusText.textContent = 'Connected';
+            document.getElementById('activeRoutes').textContent = `${activeRoutes.length} ROUTES ACTIVE`;
+            
+            if (activeRoutes.length === 0) {
+                routeDisplay.innerHTML = '<div class="route-item"><span class="route-from">No active routes</span><span class="route-to">--</span></div>';
             } else {
-                statusEl.className = 'status disconnected';
-                statusText.textContent = 'Disconnected';
+                routeDisplay.innerHTML = activeRoutes.map(output => {
+                    const input = currentRouting[output];
+                    return `
+                        <div class="route-item">
+                            <span class="route-from">IN ${input}</span>
+                            <span class="route-to">OUT ${output}</span>
+                        </div>
+                    `;
+                }).join('');
             }
         }
 
-        // Connect to matrix
+        // Update last action
+        function updateLastAction(action) {
+            document.getElementById('lastAction').textContent = action;
+        }
+
+        // Connection functions
         async function connect() {
             try {
+                addLog('Attempting connection...', 'info');
                 const response = await fetch(`${API_URL}/connect`, { method: 'POST' });
                 const data = await response.json();
                 
                 if (data.success) {
-                    addLog('Connected to video matrix', 'success');
-                    updateStatus(true);
+                    isConnected = true;
+                    updateConnectionStatus(true);
+                    addLog('Connected to matrix', 'success');
+                    updateLastAction('CONNECTED');
                     
-                    // Query current status after connecting
+                    // Query status after connecting
                     setTimeout(() => queryStatus(), 500);
                 } else {
                     addLog('Failed to connect', 'error');
@@ -461,30 +807,41 @@
             }
         }
 
-        // Disconnect from matrix
         async function disconnect() {
             try {
                 const response = await fetch(`${API_URL}/disconnect`, { method: 'POST' });
-                const data = await response.json();
-                addLog('Disconnected from video matrix', 'success');
-                updateStatus(false);
+                isConnected = false;
+                updateConnectionStatus(false);
+                addLog('Disconnected from matrix', 'info');
+                updateLastAction('DISCONNECTED');
             } catch (error) {
                 addLog(`Disconnect error: ${error.message}`, 'error');
             }
         }
 
-        // Quick action: Turn all outputs off
-        async function allOff() {
-            addLog('Turning all outputs OFF...', 'info');
-            const promises = [];
-            for (let out = 1; out <= 8; out++) {
-                promises.push(switchRoute(0, out));
+        async function queryStatus() {
+            try {
+                addLog('Querying routing status...', 'info');
+                const response = await fetch(`${API_URL}/query-status`);
+                const data = await response.json();
+
+                if (data.success) {
+                    currentRouting = data.routing;
+                    updateMatrixDisplay();
+                    updateActiveRoutes();
+                    
+                    const activeCount = Object.keys(currentRouting).filter(out => currentRouting[out] > 0).length;
+                    addLog(`Status loaded: ${activeCount} active routes`, 'success');
+                    updateLastAction('STATUS REFRESHED');
+                } else {
+                    addLog(`Failed to query status: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Status query error: ${error.message}`, 'error');
             }
-            await Promise.all(promises);
-            addLog('All outputs turned OFF', 'success');
         }
 
-        // Quick action: Diagonal routing
+        // Quick actions
         async function diagonal() {
             addLog('Applying diagonal routing...', 'info');
             const promises = [];
@@ -492,10 +849,10 @@
                 promises.push(switchRoute(i, i));
             }
             await Promise.all(promises);
-            addLog('Diagonal routing applied (1→1, 2→2, etc.)', 'success');
+            addLog('Diagonal routing applied', 'success');
+            updateLastAction('DIAGONAL ROUTING');
         }
 
-        // Quick action: All to input 1
         async function allToOne() {
             addLog('Routing all outputs to Input 1...', 'info');
             const promises = [];
@@ -504,37 +861,113 @@
             }
             await Promise.all(promises);
             addLog('All outputs routed to Input 1', 'success');
+            updateLastAction('ALL → IN1');
         }
 
-        // Add log entry
+        async function allOff() {
+            addLog('Turning all outputs OFF...', 'info');
+            const promises = [];
+            for (let out = 1; out <= 8; out++) {
+                promises.push(switchRoute(0, out));
+            }
+            await Promise.all(promises);
+            addLog('All outputs turned OFF', 'success');
+            updateLastAction('ALL OFF');
+        }
+
+        function clearAll() {
+            currentRouting = {};
+            updateMatrixDisplay();
+            updateActiveRoutes();
+            addLog('Display cleared', 'info');
+            updateLastAction('DISPLAY CLEARED');
+        }
+
+        // Status updates
+        function updateConnectionStatus(connected) {
+            const dot = document.getElementById('connectionDot');
+            const status = document.getElementById('connectionStatus');
+            
+            if (connected) {
+                dot.classList.remove('disconnected');
+                status.textContent = 'Connected';
+            } else {
+                dot.classList.add('disconnected');
+                status.textContent = 'Disconnected';
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_URL}/status`);
+                const data = await response.json();
+                
+                isConnected = data.connected;
+                updateConnectionStatus(data.connected);
+                
+                if (data.matrixIP) {
+                    document.getElementById('matrixInfo').textContent = `Matrix: ${data.matrixIP}`;
+                }
+            } catch (error) {
+                updateConnectionStatus(false);
+            }
+        }
+
+        // Logging
         function addLog(message, type = 'info') {
-            const log = document.getElementById('log');
+            const container = document.getElementById('logContainer');
             const entry = document.createElement('div');
             entry.className = 'log-entry';
             
             const time = new Date().toLocaleTimeString();
-            const typeClass = type === 'success' ? 'log-success' : type === 'error' ? 'log-error' : '';
+            const typeClass = `log-${type}`;
             
             entry.innerHTML = `
                 <span class="log-time">[${time}]</span>
-                <span class="${typeClass}">${message}</span>
+                <span class="log-message ${typeClass}">${message}</span>
             `;
             
-            log.appendChild(entry);
-            log.scrollTop = log.scrollHeight;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
 
-            // Keep only last 50 entries
-            while (log.children.length > 50) {
-                log.removeChild(log.firstChild);
+            // Keep only last 100 entries
+            while (container.children.length > 100) {
+                container.removeChild(container.firstChild);
             }
         }
 
-        // Initialize on load
+        // Footer functions
+        function updateSystemTime() {
+            document.getElementById('systemTime').textContent = new Date().toLocaleTimeString();
+        }
+
+        function savePreset() {
+            // TODO: Implement preset saving
+            addLog('Preset save not yet implemented', 'info');
+        }
+
+        function loadPreset() {
+            // TODO: Implement preset loading
+            addLog('Preset load not yet implemented', 'info');
+        }
+
+        function exportConfig() {
+            // TODO: Implement config export
+            addLog('Config export not yet implemented', 'info');
+        }
+
+        function showHelp() {
+            // TODO: Implement help system
+            addLog('Help system not yet implemented', 'info');
+        }
+
+        // Initialize
         window.onload = () => {
             initMatrix();
             checkStatus();
+            updateSystemTime();
             
-            // Try to query status after a short delay if already connected
+            // Auto-query status if connected
             setTimeout(async () => {
                 try {
                     const response = await fetch(`${API_URL}/status`);
@@ -543,12 +976,15 @@
                         queryStatus();
                     }
                 } catch (err) {
-                    // Connection not available yet
+                    // Silent fail
                 }
             }, 1000);
             
-            // Check status every 5 seconds
-            setInterval(checkStatus, 5000);
+            // Update time every second
+            setInterval(updateSystemTime, 1000);
+            
+            // Check status every 10 seconds
+            setInterval(checkStatus, 10000);
         };
     </script>
 </body>
