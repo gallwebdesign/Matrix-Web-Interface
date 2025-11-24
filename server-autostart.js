@@ -2,6 +2,7 @@ const express = require('express');
 const { Telnet } = require('telnet-client');
 const cors = require('cors');
 const path = require('path');
+const { exec } = require('child_process');
 
 const app = express();
 const PORT = 3000;
@@ -12,7 +13,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Video Matrix Configuration
-const MATRIX_IP = '192.168.10.254'; // Change this to your matrix IP
+const MATRIX_IP = '192.168.178.171'; // Change this to your matrix IP
 const MATRIX_PORT = 23;
 
 // Telnet client instance
@@ -198,18 +199,38 @@ app.post('/api/disconnect', async (req, res) => {
     }
 });
 
+// Function to open browser
+function openBrowser(url) {
+    const start = (process.platform == 'darwin' ? 'open' : 
+                   process.platform == 'win32' ? 'start' : 'xdg-open');
+    exec(`${start} ${url}`);
+}
+
 // Start server
 app.listen(PORT, () => {
-    console.log(`Video Matrix Control Server running on http://localhost:${PORT}`);
+    console.log('\n============================================');
+    console.log('  Video Matrix Control Server');
+    console.log('============================================');
+    console.log(`Server running at: http://localhost:${PORT}`);
     console.log(`Matrix IP: ${MATRIX_IP}`);
     console.log(`Matrix Port: ${MATRIX_PORT}`);
-    console.log('\nAttempting initial connection...');
+    console.log('============================================\n');
+    
+    console.log('Opening browser...\n');
+    
+    // Auto-open browser after 1 second
+    setTimeout(() => {
+        openBrowser(`http://localhost:${PORT}`);
+    }, 1000);
+    
+    // Attempt initial connection
+    console.log('Attempting initial connection...');
     connectToMatrix();
 });
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-    console.log('\nShutting down...');
+    console.log('\n\nShutting down...');
     if (telnetClient && isConnected) {
         await telnetClient.end();
     }
