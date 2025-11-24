@@ -13,25 +13,12 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
 # Start the Node.js server in background
-node server.js &
+node server-secure.js &
 SERVER_PID=$!
 
 # Wait for server to start
 sleep 2
 
-# Open browser based on OS
-echo "Opening browser..."
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    # macOS
-    open http://localhost:3000
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux
-    if command -v xdg-open > /dev/null; then
-        xdg-open http://localhost:3000
-    elif command -v gnome-open > /dev/null; then
-        gnome-open http://localhost:3000
-    fi
-fi
 
 echo ""
 echo "============================================"

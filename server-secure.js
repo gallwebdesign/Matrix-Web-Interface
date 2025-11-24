@@ -216,14 +216,8 @@ app.listen(PORT, () => {
     console.log(`Matrix Port: ${MATRIX_PORT}`);
     console.log('============================================\n');
     
-    console.log('Opening browser...\n');
     
-    // Auto-open browser after 1 second
-    setTimeout(() => {
-        openBrowser(`http://localhost:${PORT}`);
-    }, 1000);
-    
-    // Attempt initial connection
+// Attempt initial connection
     console.log('Attempting initial connection...');
     connectToMatrix();
 });
